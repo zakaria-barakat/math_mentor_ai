@@ -1,0 +1,39 @@
+name: math_mentor_ai
+description: "assistant."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+    flutter:
+      sdk: flutter
+    flutter_svg: ^2.0.9
+    shared_preferences: ^2.2.2
+    image_picker: ^1.0.4
+    camera: ^0.10.5
+    provider: ^6.1.1
+    flutter_localizations:
+      sdk: flutter
+    cupertino_icons: ^1.0.8
+    math_expressions: ^2.5.0
+    http: ^1.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/images/logo.png
+    - assets/images/google_logo.svg
+    - assets/images/facebook_logo.svg
+    - assets/images/gmail_logo.svg
+
