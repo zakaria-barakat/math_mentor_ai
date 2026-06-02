@@ -42,7 +42,6 @@ class ProfileScreen extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                // الصورة الشخصية
                 Stack(
                   children: [
                     Container(
@@ -111,7 +110,6 @@ class ProfileScreen extends StatelessWidget {
 
                 const SizedBox(height: 20),
 
-                // اسم المستخدم
                 Text(
                   user.name,
                   style: TextStyle(
@@ -122,8 +120,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
 
                 const SizedBox(height: 8),
-
-                // البريد الإلكتروني
+              
                 Text(
                   user.email,
                   style: TextStyle(
@@ -134,7 +131,6 @@ class ProfileScreen extends StatelessWidget {
 
                 const SizedBox(height: 40),
 
-                // زر تسجيل الخروج
                 Container(
                   width: double.infinity,
                   height: 55,
