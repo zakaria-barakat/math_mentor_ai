@@ -14,8 +14,8 @@ class CalculatorScreen extends StatefulWidget {
 class _CalculatorScreenState extends State<CalculatorScreen> {
   // Calculator state
   String _display = '0';
-  String _currentInput = '';        // لتخزين الرقم الحالي
-  String _fullExpression = '';      // لتخزين المسألة كاملة
+  String _currentInput = '';        
+  String _fullExpression = '';      
   double _firstOperand = 0;
   double _secondOperand = 0;
   String _operation = '';
@@ -25,10 +25,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   bool _isRadians = true;
   bool _isScientificMode = false;
 
-  // متغيرات التبويبات
   int _selectedTabIndex = 0; // 0: أساسي, 1: مثلثات, 2: متقدمة, 3: ذاكرة, 4: متغيرات
 
-  // متغيرات لتخزين القيم (للحاسبة المتقدمة)
   Map<String, double> _variables = {
     'x': 0.0,
     'y': 0.0,
@@ -44,10 +42,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   @override
   void initState() {
     super.initState();
-    _loadVariables(); // تحميل المتغيرات المحفوظة
+    _loadVariables();
   }
 
-  // ==================== دوال الحفظ والتحميل ====================
   Future<void> _saveVariables() async {
     final prefs = await SharedPreferences.getInstance();
     _variables.forEach((key, value) {
@@ -64,15 +61,13 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     });
   }
 
-  // ==================== دوال المتغيرات ====================
   void _clearVariable(String varName) {
     setState(() {
       _variables[varName] = 0.0;
       _display = '✓ تم مسح $varName';
       _hasResult = true;
-      _saveVariables(); // حفظ التغييرات
+      _saveVariables(); 
 
-      // إخفاء الرسالة بعد ثانية
       Future.delayed(const Duration(seconds: 1), () {
         if (mounted) {
           setState(() {
@@ -89,9 +84,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       _variables.updateAll((key, value) => 0.0);
       _display = '✓ تم مسح جميع المتغيرات';
       _hasResult = true;
-      _saveVariables(); // حفظ التغييرات
+      _saveVariables(); 
 
-      // إخفاء الرسالة بعد ثانية
       Future.delayed(const Duration(seconds: 1), () {
         if (mounted) {
           setState(() {
@@ -121,7 +115,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     });
   }
 
-  // ==================== دوال الأرقام ====================
   void _onNumberPressed(String number) {
     setState(() {
       if (_isNewOperation || _display == '0' || _hasResult) {
@@ -168,7 +161,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       } else if (_operation.isNotEmpty) {
         // تغيير العملية إذا لم يتم إدخال رقم بعد
         _operation = op;
-        // تحديث آخر عملية في المسألة
         List<String> parts = _fullExpression.split(' ');
         if (parts.length >= 2) {
           parts[parts.length - 2] = op;
@@ -581,7 +573,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           break;
       }
 
-      // إخفاء الرسالة بعد ثانية
       if (op != 'MR') {
         Future.delayed(const Duration(seconds: 1), () {
           if (mounted) {
@@ -600,15 +591,12 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     if (value.isInfinite) return '∞';
     if (value.isNaN) return 'غير معرف';
 
-    // معالجة الأرقام الصغيرة جداً
     if (value.abs() < 1e-10 && value != 0) {
       return '0';
     }
 
-    // محاولة عرض الرقم بدون صيغة علمية
     String formatted = value.toStringAsFixed(10);
 
-    // إزالة الأصفار الزائدة
     if (formatted.contains('.')) {
       formatted = formatted.replaceAll(RegExp(r'0*$'), '');
       if (formatted.endsWith('.')) {
@@ -616,7 +604,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       }
     }
 
-    // إذا كان الرقم طويلاً جداً، استخدم الصيغة العلمية بشكل محدود
     if (formatted.length > 15) {
       if (value.abs() >= 1e10) {
         formatted = value.toStringAsExponential(2);
