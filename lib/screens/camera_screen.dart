@@ -92,7 +92,6 @@ class _CameraScreenState extends State<CameraScreen> {
           SafeArea(
             child: Column(
               children: [
-                // الشريط العلوي
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
@@ -109,8 +108,6 @@ class _CameraScreenState extends State<CameraScreen> {
                 ),
 
                 const Spacer(),
-
-                // الشريط السفلي
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
@@ -127,8 +124,6 @@ class _CameraScreenState extends State<CameraScreen> {
                         ),
                         onPressed: _toggleFlash,
                       ),
-
-                      // زر التصوير
                       GestureDetector(
                         onTap: _takePicture,
                         child: Container(
