@@ -1,11 +1,7 @@
-// ملف: providers/history_provider.dart
-// أنشئ هذا الملف الجديد
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
-// نموذج عنصر التاريخ
 class HistoryItem {
   final String problem;
   final String solution;
@@ -19,7 +15,6 @@ class HistoryItem {
     this.status = 'تم الحل',
   });
 
-  // للعرض في الشاشة
   String get formattedDate {
     final now = DateTime.now();
     final difference = now.difference(date);
@@ -63,7 +58,6 @@ class HistoryProvider extends ChangeNotifier {
     loadHistory();
   }
 
-  // تحميل التاريخ من SharedPreferences
   Future<void> loadHistory() async {
     _isLoading = true;
     notifyListeners();
@@ -78,7 +72,6 @@ class HistoryProvider extends ChangeNotifier {
             .map((item) => HistoryItem.fromJson(item as Map<String, dynamic>))
             .toList();
 
-        // ترتيب من الأحدث للأقدم
         _items.sort((a, b) => b.date.compareTo(a.date));
 
         print('تم تحميل ${_items.length} مسألة من التاريخ');
@@ -91,7 +84,6 @@ class HistoryProvider extends ChangeNotifier {
     }
   }
 
-  // إضافة مسألة جديدة للتاريخ
   Future<void> addProblem(String problem, String solution) async {
     try {
       final newItem = HistoryItem(
@@ -102,7 +94,6 @@ class HistoryProvider extends ChangeNotifier {
 
       _items.insert(0, newItem); // أضف في البداية
 
-      // احفظ في SharedPreferences
       await _saveToPrefs();
 
       notifyListeners();
@@ -112,7 +103,6 @@ class HistoryProvider extends ChangeNotifier {
     }
   }
 
-  // حذف مسألة من التاريخ
   Future<void> removeProblem(int index) async {
     if (index < 0 || index >= _items.length) return;
 
@@ -126,7 +116,6 @@ class HistoryProvider extends ChangeNotifier {
     }
   }
 
-  // مسح كل التاريخ
   Future<void> clearAllHistory() async {
     try {
       _items.clear();
@@ -138,14 +127,12 @@ class HistoryProvider extends ChangeNotifier {
     }
   }
 
-  // حفظ في SharedPreferences
   Future<void> _saveToPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     final jsonList = _items.map((item) => item.toJson()).toList();
     await prefs.setString('problem_history', jsonEncode(jsonList));
   }
 
-  // البحث في التاريخ
   List<HistoryItem> search(String query) {
     if (query.isEmpty) return _items;
 
