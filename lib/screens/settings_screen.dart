@@ -30,7 +30,6 @@ class SettingsScreen extends StatelessWidget {
           body: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              // الوضع الليلي
               _buildSettingsItem(
                 context: context,
                 icon: Icons.dark_mode,
@@ -45,7 +44,6 @@ class SettingsScreen extends StatelessWidget {
               ),
               const Divider(color: Color(0xFFE0E0E0)),
 
-              // اللغة
               _buildSettingsItem(
                 context: context,
                 icon: Icons.language,
