@@ -1,6 +1,3 @@
-// ملف: providers/settings_provider.dart
-// عدل الملف كاملاً بهذا الكود
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,17 +5,14 @@ class SettingsProvider extends ChangeNotifier {
   bool _isDarkMode = false;
   Locale _locale = const Locale('ar');
   bool _isLoading = true; // أضفنا هذا
-
-  // Getters
   bool get isDarkMode => _isDarkMode;
   Locale get locale => _locale;
   bool get isLoading => _isLoading;
 
   SettingsProvider() {
-    loadSettings(); // حمل الإعدادات عند بدء التشغيل
+    loadSettings(); 
   }
 
-  // تحميل الإعدادات من SharedPreferences
   Future<void> loadSettings() async {
     _isLoading = true;
     notifyListeners();
@@ -40,7 +34,6 @@ class SettingsProvider extends ChangeNotifier {
     }
   }
 
-  // حفظ الوضع الليلي
   Future<void> toggleDarkMode(bool value) async {
     _isDarkMode = value;
 
@@ -55,7 +48,6 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // تغيير اللغة وحفظها
   Future<void> changeLanguage(String languageCode) async {
     _locale = Locale(languageCode);
 
@@ -70,12 +62,10 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // دالة الترجمة (حالياً بسيطة، بعدين نطورها)
   String translate(String arabic, String english) {
     return _locale.languageCode == 'ar' ? arabic : english;
   }
 
-  // إعادة تعيين الإعدادات للافتراضية
   Future<void> resetToDefault() async {
     _isDarkMode = false;
     _locale = const Locale('ar');
