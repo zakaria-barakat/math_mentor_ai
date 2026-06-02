@@ -92,7 +92,7 @@ class HistoryProvider extends ChangeNotifier {
         date: DateTime.now(),
       );
 
-      _items.insert(0, newItem); // أضف في البداية
+      _items.insert(0, newItem); 
 
       await _saveToPrefs();
 
