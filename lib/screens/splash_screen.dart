@@ -74,7 +74,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       backgroundColor: settings.isDarkMode ? const Color(0xFF121212) : Colors.white,
       body: Stack(
         children: [
-          // خلفية مع تدرج للوضع الفاتح فقط
           if (!settings.isDarkMode)
             Container(
               decoration: const BoxDecoration(
@@ -99,7 +98,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // اللوجو
                       Container(
                         width: 150,
                         height: 150,
@@ -171,7 +169,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // زر تسجيل الدخول
                           Container(
                             width: double.infinity,
                             height: 55,
@@ -197,7 +194,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                           ),
                           const SizedBox(height: 16),
 
-                          // زر إنشاء حساب
                           Container(
                             width: double.infinity,
                             height: 55,
@@ -226,7 +222,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
                           const SizedBox(height: 20),
 
-                          // دخول كزائر
                           TextButton(
                             onPressed: _buttonsAnimation.value == 1.0
                                 ? _navigateToHomeAsGuest
