@@ -1,20 +1,16 @@
-// ملف: providers/auth_provider.dart
-// أنشئ هذا الملف الجديد
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
-// نموذج بيانات المستخدم
 class User {
   final String name;
   final String email;
 
-  final String? profileImage; // صورة المستخدم (اختياري)
-  final int problemsSolved; // عدد المسائل المحلولة
-  final int studyDays; // أيام الدراسة
-  final double accuracy; // نسبة الدقة
-
+  final String? profileImage;
+  final int problemsSolved; 
+  final int studyDays;
+  final double accuracy; 
+  
   User({
     required this.name,
     required this.email,
@@ -24,7 +20,6 @@ class User {
     this.accuracy = 0.0,
   });
 
-  // لتحويل الكائن لـ Map عشان نحفظه
   Map<String, dynamic> toJson() => {
     'name': name,
     'email': email,
@@ -34,7 +29,6 @@ class User {
     'accuracy': accuracy,
   };
 
-  // لإنشاء كائن من Map
   factory User.fromJson(Map<String, dynamic> json) => User(
     name: json['name'] ?? '',
     email: json['email'] ?? '',
@@ -50,17 +44,14 @@ class AuthProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
-  // Getters
   User? get currentUser => _currentUser;
   bool get isLoggedIn => _currentUser != null;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  // للدخول كزائر
   Future<void> loginAsGuest() async {
     _setLoading(true);
     try {
-      // أنشئ مستخدم زائر
       _currentUser = User(
         name: 'زائر',
         email: 'guest@temp.com',
@@ -69,7 +60,6 @@ class AuthProvider extends ChangeNotifier {
         accuracy: 0.0,
       );
 
-      // احفظ في SharedPreferences
       await _saveUserToPrefs();
 
       _errorMessage = null;
@@ -79,29 +69,25 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // تسجيل الدخول العادي
   Future<bool> login(String email, String password) async {
     _setLoading(true);
     try {
-      // هنا حترتبط بالـ API بعدين
-      // حالياً نستخدم بيانات وهمية للاختبار
+      // هنا بنربطه بالـ API بعدين
+      // حاليا نستخدم بيانات وهمية عشان الاختبار
 
-      await Future.delayed(const Duration(seconds: 1)); // محاكاة تأخير الشبكة
+      await Future.delayed(const Duration(seconds: 1)); 
 
-      // 🟢 الحل: نتحقق إذا في مستخدم مسجل بنفس الإيميل
       final prefs = await SharedPreferences.getInstance();
       final String? userJson = prefs.getString('current_user');
 
       if (userJson != null) {
-        // في مستخدم مسجل من قبل
         final Map<String, dynamic> userMap = jsonDecode(userJson);
 
-        // 🟢 اقبل أي إيميل يطابق الإيميل المخزن
         if (userMap['email'] == email) {
           _currentUser = User.fromJson(userMap);
           _errorMessage = null;
           _setLoading(false);
-          // رسالة ترحيب
+
           print('مرحباً بعودة ${_currentUser!.name}');
           return true;
         } else {
@@ -110,7 +96,6 @@ class AuthProvider extends ChangeNotifier {
           return false;
         }
       } else {
-        // للاختبار: اقبل test@test.com
         if (email == 'test@test.com' && password == '123456') {
           _currentUser = User(
             name: 'أحمد محمد',
@@ -137,12 +122,9 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // إنشاء حساب جديد
   Future<bool> signUp(String name, String email, String password) async {
     _setLoading(true);
     try {
-      // هنا حترتبط بالـ API بعدين
-
       await Future.delayed(const Duration(seconds: 1)); // محاكاة
 
       _currentUser = User(
@@ -164,7 +146,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // تسجيل الخروج
   Future<void> logout() async {
     _setLoading(true);
     try {
@@ -178,7 +159,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // تحميل المستخدم المحفوظ
   Future<void> loadSavedUser() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -195,7 +175,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // تحديث بيانات المستخدم
   Future<void> updateUserProfile({String? name, String? profileImage}) async {
     if (_currentUser == null) return;
 
@@ -216,7 +195,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // زيادة عدد المسائل المحلولة
   void incrementProblemsSolved() {
     if (_currentUser != null) {
       _currentUser = User(
@@ -232,7 +210,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // دوال مساعدة خاصة
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();
