@@ -1,4 +1,3 @@
-// lib/screens/problem_solution_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/history_provider.dart';
@@ -26,8 +25,7 @@ class _ProblemSolutionScreenState extends State<ProblemSolutionScreen> {
   bool _isLoading = false;
   final MockApiService _apiService = MockApiService();
   Map<String, dynamic>? _solutionData;
-  List<String> _expandedSteps = []; // للخطوات المفصلة
-
+  List<String> _expandedSteps = []; 
   @override
   void initState() {
     super.initState();
@@ -51,11 +49,9 @@ class _ProblemSolutionScreenState extends State<ProblemSolutionScreen> {
           _expandedSteps = List.from(result['steps']);
         });
 
-        // حفظ في التاريخ
         final historyProvider = Provider.of<HistoryProvider>(context, listen: false);
         historyProvider.addProblem(widget.problem, result['solution']);
 
-        // تحديث عدد المسائل للمستخدم
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
         if (authProvider.isLoggedIn) {
           authProvider.incrementProblemsSolved();
@@ -108,7 +104,6 @@ class _ProblemSolutionScreenState extends State<ProblemSolutionScreen> {
 
               const SizedBox(height: 15),
 
-              // عرض خطوات الحل الديناميكية
               ..._buildDynamicSteps(settings),
 
               const SizedBox(height: 20),
