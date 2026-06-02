@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SettingsProvider extends ChangeNotifier {
   bool _isDarkMode = false;
   Locale _locale = const Locale('ar');
-  bool _isLoading = true; // أضفنا هذا
+  bool _isLoading = true;
   bool get isDarkMode => _isDarkMode;
   Locale get locale => _locale;
   bool get isLoading => _isLoading;
