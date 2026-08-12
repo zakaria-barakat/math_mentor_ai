@@ -43,3 +43,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+# ملفات المفاتيح السرّية — لا تُرفع أبداً
+env.json
+.env
+*.env
+supabase/secrets.env
+supabase/.branches
+supabase/.temp

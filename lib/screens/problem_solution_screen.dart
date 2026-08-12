@@ -3,18 +3,20 @@ import 'package:provider/provider.dart';
 import '../providers/history_provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/settings_provider.dart';
-import '../services/mock_api_service.dart';
+import '../services/ai_service.dart';
 import 'dart:io';
 
 class ProblemSolutionScreen extends StatefulWidget {
   final String problem;
   final String? imagePath;
+  final bool saveToHistory;
 
   const ProblemSolutionScreen({
-    Key? key,
+    super.key,
     required this.problem,
     this.imagePath,
-  }) : super(key: key);
+    this.saveToHistory = true,
+  });
 
   @override
   _ProblemSolutionScreenState createState() => _ProblemSolutionScreenState();
@@ -23,41 +25,52 @@ class ProblemSolutionScreen extends StatefulWidget {
 class _ProblemSolutionScreenState extends State<ProblemSolutionScreen> {
   bool _showSolution = false;
   bool _isLoading = false;
-  final MockApiService _apiService = MockApiService();
+  final AiService _service = AiService();
   Map<String, dynamic>? _solutionData;
-  List<String> _expandedSteps = []; 
+  List<String> _expandedSteps = [];
+
   @override
   void initState() {
     super.initState();
-    _simulateAIAnalysis();
+    _solveProblem();
   }
 
-  void _simulateAIAnalysis() {
-    setState(() {
-      _isLoading = true;
-    });
-
-    _apiService.solveProblem(
-      problem: widget.problem,
-      imagePath: widget.imagePath,
-    ).then((result) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _showSolution = true;
-          _solutionData = result;
-          _expandedSteps = List.from(result['steps']);
-        });
-
-        final historyProvider = Provider.of<HistoryProvider>(context, listen: false);
-        historyProvider.addProblem(widget.problem, result['solution']);
-
-        final authProvider = Provider.of<AuthProvider>(context, listen: false);
-        if (authProvider.isLoggedIn) {
-          authProvider.incrementProblemsSolved();
-        }
+  Future<void> _solveProblem() async {
+    if (mounted) setState(() => _isLoading = true);
+    try {
+      final result = await _service.solveProblem(
+        problem: widget.problem,
+        imagePath: widget.imagePath,
+      );
+      if (!mounted) return;
+      final rawSteps = result['steps'];
+      final steps = rawSteps is List ? rawSteps.map((e) => e.toString()).toList() : <String>[];
+      setState(() {
+        _isLoading = false;
+        _showSolution = result['success'] == true;
+        _solutionData = result;
+        _expandedSteps = steps;
+      });
+      if (result['success'] == true && widget.saveToHistory) {
+        final historyProvider = context.read<HistoryProvider>();
+        await historyProvider.addProblem(
+          result['problem']?.toString() ?? widget.problem,
+          result['solution']?.toString() ?? '',
+        );
+        if (!mounted) return;
+        final authProvider = context.read<AuthProvider>();
+        if (authProvider.isLoggedIn) authProvider.incrementProblemsSolved();
       }
-    });
+    } catch (e) {
+      debugPrint('خطأ في حل المسألة: $e');
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _showSolution = false;
+        _solutionData = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('حدث خطأ أثناء معالجة المسألة')));
+    }
   }
 
   @override
@@ -134,7 +147,7 @@ class _ProblemSolutionScreenState extends State<ProblemSolutionScreen> {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: settings.isDarkMode
-              ? const Color(0xFF4A6FA5).withOpacity(0.3)
+              ? const Color(0xFF4A6FA5).withValues(alpha: 0.3)
               : const Color(0xFFBBDEFB),
         ),
       ),
@@ -156,6 +169,7 @@ class _ProblemSolutionScreenState extends State<ProblemSolutionScreen> {
               height: 200,
               width: double.infinity,
               fit: BoxFit.cover,
+              cacheWidth: 1600,
               errorBuilder: (context, error, stackTrace) {
                 return Container(
                   height: 200,
@@ -188,7 +202,7 @@ class _ProblemSolutionScreenState extends State<ProblemSolutionScreen> {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: settings.isDarkMode
-              ? const Color(0xFF4A6FA5).withOpacity(0.3)
+              ? const Color(0xFF4A6FA5).withValues(alpha: 0.3)
               : const Color(0xFFBBDEFB),
         ),
       ),
@@ -206,25 +220,26 @@ class _ProblemSolutionScreenState extends State<ProblemSolutionScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            widget.problem,
+            // نعرض المسألة المستخرجة من Gemini إن وجدت، وإلا النص الأصلي
+            _solutionData?['problem'] ?? widget.problem,
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
               color: settings.isDarkMode ? Colors.white : const Color(0xFF0C206D),
             ),
           ),
-          if (_solutionData != null && _solutionData!['isMock'] == true)
+          if (_solutionData != null && _solutionData!['success'] == false)
             Container(
               margin: const EdgeInsets.only(top: 10),
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.amber.withOpacity(0.2),
+                color: Colors.red.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(5),
-                border: Border.all(color: Colors.amber),
+                border: Border.all(color: Colors.red),
               ),
               child: Text(
-                settings.translate('⚠️ حل تجريبي', '⚠️ Mock solution'),
-                style: const TextStyle(color: Colors.amber, fontSize: 12),
+                settings.translate('⚠️ فشل الحل - حاول مرة أخرى', '⚠️ Failed - try again'),
+                style: const TextStyle(color: Colors.red, fontSize: 12),
               ),
             ),
         ],
@@ -365,7 +380,6 @@ class _ProblemSolutionScreenState extends State<ProblemSolutionScreen> {
                       height: 1.5,
                       color: settings.isDarkMode ? Colors.white : const Color(0xFF1E1E1E),
                     ),
-                    textDirection: TextDirection.ltr,
                   ),
                 )
               else
@@ -397,7 +411,7 @@ class _ProblemSolutionScreenState extends State<ProblemSolutionScreen> {
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0C206D).withOpacity(0.3),
+            color: const Color(0xFF0C206D).withValues(alpha: 0.3),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -600,12 +614,12 @@ class _ProblemSolutionScreenState extends State<ProblemSolutionScreen> {
           Text(
             widget.imagePath != null
                 ? settings.translate(
-              'AI يقوم بتحليل الصورة واستخراج المسألة...',
-              'AI is analyzing image and extracting problem...',
+              'جاري تحليل الصورة واستخراج المسألة محلياً...',
+              'Analyzing image and extracting problem locally...',
             )
                 : settings.translate(
-              'AI يقوم بتحليل المسألة...',
-              'AI is analyzing problem...',
+              'جاري تحليل المسألة ذكياً...',
+              'Analyzing problem smartly...',
             ),
             style: TextStyle(
               fontSize: 16,

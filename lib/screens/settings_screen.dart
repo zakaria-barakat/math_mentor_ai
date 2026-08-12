@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/settings_provider.dart';
 
 class SettingsScreen extends StatelessWidget {
+  const SettingsScreen({super.key});
   @override
   Widget build(BuildContext context) {
     return Consumer<SettingsProvider>(
@@ -31,21 +32,19 @@ class SettingsScreen extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             children: [
               _buildSettingsItem(
-                context: context,
                 icon: Icons.dark_mode,
                 title: settings.translate('الوضع الليلي', 'Dark Mode'),
                 trailing: Switch(
                   value: settings.isDarkMode,
                   onChanged: (value) => settings.toggleDarkMode(value),
                   activeColor: const Color(0xFF0C206D),
-                  activeTrackColor: const Color(0xFF4A6FA5).withOpacity(0.5),
+                  activeTrackColor: const Color(0xFF4A6FA5).withValues(alpha: 0.5),
                 ),
                 settings: settings,
               ),
               const Divider(color: Color(0xFFE0E0E0)),
 
               _buildSettingsItem(
-                context: context,
                 icon: Icons.language,
                 title: settings.translate('اللغة', 'Language'),
                 trailing: DropdownButton<String>(
@@ -85,7 +84,6 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Widget _buildSettingsItem({
-    required BuildContext context,
     required IconData icon,
     required String title,
     required Widget trailing,

@@ -5,6 +5,7 @@ import '../providers/settings_provider.dart';
 import '../providers/history_provider.dart';
 
 class HistoryScreen extends StatelessWidget {
+  const HistoryScreen({super.key});
   @override
   Widget build(BuildContext context) {
     return Consumer2<SettingsProvider, HistoryProvider>(
@@ -102,7 +103,7 @@ class HistoryScreen extends StatelessWidget {
                 ),
                 direction: DismissDirection.endToStart,
                 onDismissed: (direction) {
-                  history.removeProblem(index);
+                  history.removeProblem(item);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(settings.translate('تم الحذف', 'Deleted')),
@@ -123,7 +124,7 @@ class HistoryScreen extends StatelessWidget {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 2),
                       ),
@@ -163,7 +164,7 @@ class HistoryScreen extends StatelessWidget {
                           style: const TextStyle(color: Color(0xFF2E7D32)),
                         ),
                         Text(
-                          item.formattedDate,
+                          item.formattedDate(english: settings.locale.languageCode == 'en'),
                           style: TextStyle(
                             color: settings.isDarkMode
                                 ? Colors.grey.shade400
@@ -186,6 +187,7 @@ class HistoryScreen extends StatelessWidget {
                         MaterialPageRoute(
                           builder: (context) => ProblemSolutionScreen(
                             problem: item.problem,
+                            saveToHistory: false,
                           ),
                         ),
                       );

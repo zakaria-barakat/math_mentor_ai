@@ -34,66 +34,43 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _handleSubmit() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
+  Future<void> _handleSubmit() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    if (mounted) setState(() => _isLoading = true);
 
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final settings = Provider.of<SettingsProvider>(context, listen: false);
+    final authProvider = context.read<AuthProvider>();
+    final settings = context.read<SettingsProvider>();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final name = _nameController.text.trim();
 
-      bool success;
+    final success = widget.isSignUp
+        ? await authProvider.signUp(name, email, password, rememberMe: _rememberMe)
+        : await authProvider.login(email, password, rememberMe: _rememberMe);
 
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    final messenger = ScaffoldMessenger.of(context);
+    if (success) {
       if (widget.isSignUp) {
-        success = await authProvider.signUp(
-          _nameController.text,
-          _emailController.text,
-          _passwordController.text,
-        );
+        Navigator.pushReplacementNamed(context, '/login');
+        messenger.showSnackBar(SnackBar(
+          content: Text(settings.translate('تم إنشاء الحساب بنجاح! يمكنك تسجيل الدخول الآن', 'Account created successfully! You can now login')),
+          backgroundColor: const Color(0xFF2E7D32), behavior: SnackBarBehavior.floating,
+        ));
       } else {
-        success = await authProvider.login(
-          _emailController.text,
-          _passwordController.text,
-        );
+        Navigator.pushReplacementNamed(context, '/main');
+        messenger.showSnackBar(SnackBar(
+          content: Text(settings.translate('تم تسجيل الدخول بنجاح!', 'Login successful!')),
+          backgroundColor: const Color(0xFF2E7D32), behavior: SnackBarBehavior.floating,
+        ));
       }
-
-      setState(() => _isLoading = false);
-
-      if (success) {
-        if (widget.isSignUp) {
-          Navigator.pushReplacementNamed(context, '/login');
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(settings.translate(
-                'تم إنشاء الحساب بنجاح! يمكنك تسجيل الدخول الآن',
-                'Account created successfully! You can now login',
-              )),
-              backgroundColor: const Color(0xFF2E7D32),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        } else {
-          Navigator.pushReplacementNamed(context, '/main');
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(settings.translate(
-                'تم تسجيل الدخول بنجاح!',
-                'Login successful!',
-              )),
-              backgroundColor: const Color(0xFF2E7D32),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(authProvider.errorMessage ??
-                settings.translate('حدث خطأ غير متوقع', 'An unexpected error occurred')),
-            backgroundColor: const Color(0xFFC62828),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+    } else {
+      messenger.showSnackBar(SnackBar(
+        content: Text(authProvider.errorMessage ?? settings.translate('حدث خطأ غير متوقع', 'An unexpected error occurred')),
+        backgroundColor: const Color(0xFFC62828), behavior: SnackBarBehavior.floating,
+      ));
     }
   }
 
@@ -375,7 +352,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       BoxShadow(
                         color: (settings.isDarkMode
                             ? const Color(0xFF4A6FA5)
-                            : const Color(0xFF0C206D)).withOpacity(0.3),
+                            : const Color(0xFF0C206D)).withValues(alpha: 0.3),
                         blurRadius: 10,
                         offset: const Offset(0, 5),
                       ),
@@ -576,8 +553,8 @@ class _LoginScreenState extends State<LoginScreen> {
           boxShadow: [
             BoxShadow(
               color: settings.isDarkMode
-                  ? Colors.black.withOpacity(0.3)
-                  : Colors.grey.withOpacity(0.1),
+                  ? Colors.black.withValues(alpha: 0.3)
+                  : Colors.grey.withValues(alpha: 0.1),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -586,7 +563,9 @@ class _LoginScreenState extends State<LoginScreen> {
         child: SvgPicture.asset(
           imagePath,
           fit: BoxFit.contain,
-          color: settings.isDarkMode ? Colors.white : null,
+          colorFilter: settings.isDarkMode
+              ? const ColorFilter.mode(Colors.white, BlendMode.srcIn)
+              : null,
         ),
       ),
     );
@@ -595,10 +574,11 @@ class _LoginScreenState extends State<LoginScreen> {
   void _showForgotPasswordDialog() {
     final emailController = TextEditingController();
     final settings = Provider.of<SettingsProvider>(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
 
-    showDialog(
+    showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: settings.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
         title: Text(
           settings.translate('استعادة كلمة المرور', 'Reset Password'),
@@ -630,7 +610,10 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+                Navigator.pop(dialogContext);
+                emailController.dispose();
+              },
             child: Text(
               settings.translate('إلغاء', 'Cancel'),
               style: TextStyle(
@@ -640,8 +623,9 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
+              Navigator.pop(dialogContext);
+              emailController.dispose();
+              messenger.showSnackBar(
                 SnackBar(
                   content: Text(settings.translate(
                     'تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني',

@@ -1,6 +1,7 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 
 class HistoryItem {
   final String problem;
@@ -8,26 +9,20 @@ class HistoryItem {
   final DateTime date;
   final String status;
 
-  HistoryItem({
+  const HistoryItem({
     required this.problem,
     required this.solution,
     required this.date,
     this.status = 'تم الحل',
   });
 
-  String get formattedDate {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inMinutes < 60) {
-      return 'منذ ${difference.inMinutes} دقيقة';
-    } else if (difference.inHours < 24) {
-      return 'منذ ${difference.inHours} ساعات';
-    } else if (difference.inDays < 7) {
-      return 'منذ ${difference.inDays} أيام';
-    } else {
-      return '${date.year}/${date.month}/${date.day}';
-    }
+  String formattedDate({bool english = false}) {
+    final difference = DateTime.now().difference(date);
+    if (difference.isNegative || difference.inMinutes < 1) return english ? 'Just now' : 'الآن';
+    if (difference.inMinutes < 60) return english ? '${difference.inMinutes} min ago' : 'منذ ${difference.inMinutes} دقيقة';
+    if (difference.inHours < 24) return english ? '${difference.inHours} hr ago' : 'منذ ${difference.inHours} ساعات';
+    if (difference.inDays < 7) return english ? '${difference.inDays} days ago' : 'منذ ${difference.inDays} أيام';
+    return '${date.year}/${date.month}/${date.day}';
   }
 
   Map<String, dynamic> toJson() => {
@@ -37,12 +32,16 @@ class HistoryItem {
     'status': status,
   };
 
-  factory HistoryItem.fromJson(Map<String, dynamic> json) => HistoryItem(
-    problem: json['problem'],
-    solution: json['solution'],
-    date: DateTime.parse(json['date']),
-    status: json['status'] ?? 'تم الحل',
-  );
+  factory HistoryItem.fromJson(Map<String, dynamic> json) {
+    final rawDate = json['date']?.toString();
+    final parsedDate = rawDate == null ? null : DateTime.tryParse(rawDate);
+    return HistoryItem(
+      problem: json['problem']?.toString() ?? '',
+      solution: json['solution']?.toString() ?? '',
+      date: parsedDate ?? DateTime.now(),
+      status: json['status']?.toString() ?? 'تم الحل',
+    );
+  }
 }
 
 class HistoryProvider extends ChangeNotifier {
@@ -50,34 +49,33 @@ class HistoryProvider extends ChangeNotifier {
   bool _isLoading = false;
 
   List<HistoryItem> get items => List.unmodifiable(_items);
-  List<HistoryItem> get recentItems => _items.take(5).toList();
+  List<HistoryItem> get recentItems => List.unmodifiable(_items.take(5));
   bool get isLoading => _isLoading;
   bool get isEmpty => _items.isEmpty;
 
-  HistoryProvider() {
-    loadHistory();
-  }
+  HistoryProvider() { loadHistory(); }
 
   Future<void> loadHistory() async {
     _isLoading = true;
     notifyListeners();
-
     try {
       final prefs = await SharedPreferences.getInstance();
-      final String? historyJson = prefs.getString('problem_history');
-
-      if (historyJson != null) {
-        final List<dynamic> jsonList = jsonDecode(historyJson);
-        _items = jsonList
-            .map((item) => HistoryItem.fromJson(item as Map<String, dynamic>))
-            .toList();
-
-        _items.sort((a, b) => b.date.compareTo(a.date));
-
-        print('تم تحميل ${_items.length} مسألة من التاريخ');
+      final raw = prefs.getString('problem_history');
+      if (raw != null && raw.isNotEmpty) {
+        final decoded = jsonDecode(raw);
+        if (decoded is List) {
+          _items = decoded
+              .whereType<Map>()
+              .map((e) => HistoryItem.fromJson(Map<String, dynamic>.from(e)))
+              .where((e) => e.problem.isNotEmpty || e.solution.isNotEmpty)
+              .toList();
+          _items.sort((a, b) => b.date.compareTo(a.date));
+        }
       }
+      debugPrint('تم تحميل ${_items.length} مسألة من التاريخ');
     } catch (e) {
-      print('خطأ في تحميل التاريخ: $e');
+      debugPrint('خطأ في تحميل التاريخ: $e');
+      _items = [];
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -91,28 +89,25 @@ class HistoryProvider extends ChangeNotifier {
         solution: solution,
         date: DateTime.now(),
       );
-
-      _items.insert(0, newItem); 
-
+      _items.insert(0, newItem);
       await _saveToPrefs();
-
       notifyListeners();
-      print('تمت إضافة المسألة: $problem');
+      debugPrint('تمت إضافة المسألة: $problem');
     } catch (e) {
-      print('خطأ في إضافة المسألة: $e');
+      debugPrint('خطأ في إضافة المسألة: $e');
     }
   }
 
-  Future<void> removeProblem(int index) async {
-    if (index < 0 || index >= _items.length) return;
-
+  Future<void> removeProblem(HistoryItem item) async {
+    final index = _items.indexOf(item);
+    if (index == -1) return;
     try {
       final removed = _items.removeAt(index);
       await _saveToPrefs();
       notifyListeners();
-      print('تم حذف المسألة: ${removed.problem}');
+      debugPrint('تم حذف المسألة: ${removed.problem}');
     } catch (e) {
-      print('خطأ في حذف المسألة: $e');
+      debugPrint('خطأ في حذف المسألة: $e');
     }
   }
 
@@ -121,24 +116,17 @@ class HistoryProvider extends ChangeNotifier {
       _items.clear();
       await _saveToPrefs();
       notifyListeners();
-      print('تم مسح كل التاريخ');
+      debugPrint('تم مسح كل التاريخ');
     } catch (e) {
-      print('خطأ في مسح التاريخ: $e');
+      debugPrint('خطأ في مسح التاريخ: $e');
     }
   }
 
   Future<void> _saveToPrefs() async {
     final prefs = await SharedPreferences.getInstance();
-    final jsonList = _items.map((item) => item.toJson()).toList();
-    await prefs.setString('problem_history', jsonEncode(jsonList));
-  }
-
-  List<HistoryItem> search(String query) {
-    if (query.isEmpty) return _items;
-
-    return _items.where((item) =>
-    item.problem.contains(query) ||
-        item.solution.contains(query)
-    ).toList();
+    await prefs.setString(
+      'problem_history',
+      jsonEncode(_items.map((item) => item.toJson()).toList()),
+    );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -10,7 +11,7 @@ class SettingsProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   SettingsProvider() {
-    loadSettings(); 
+    loadSettings();
   }
 
   Future<void> loadSettings() async {
@@ -25,9 +26,9 @@ class SettingsProvider extends ChangeNotifier {
       String languageCode = prefs.getString('language') ?? 'ar';
       _locale = Locale(languageCode);
 
-      print('تم تحميل الإعدادات: DarkMode=$_isDarkMode, Language=$languageCode');
+      debugPrint('تم تحميل الإعدادات: DarkMode=$_isDarkMode, Language=$languageCode');
     } catch (e) {
-      print('خطأ في تحميل الإعدادات: $e');
+      debugPrint('خطأ في تحميل الإعدادات: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -40,9 +41,9 @@ class SettingsProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('darkMode', value);
-      print('تم حفظ الوضع الليلي: $value');
+      debugPrint('تم حفظ الوضع الليلي: $value');
     } catch (e) {
-      print('خطأ في حفظ الوضع الليلي: $e');
+      debugPrint('خطأ في حفظ الوضع الليلي: $e');
     }
 
     notifyListeners();
@@ -54,9 +55,9 @@ class SettingsProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('language', languageCode);
-      print('تم حفظ اللغة: $languageCode');
+      debugPrint('تم حفظ اللغة: $languageCode');
     } catch (e) {
-      print('خطأ في حفظ اللغة: $e');
+      debugPrint('خطأ في حفظ اللغة: $e');
     }
 
     notifyListeners();
@@ -74,9 +75,9 @@ class SettingsProvider extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('darkMode', false);
       await prefs.setString('language', 'ar');
-      print('تم إعادة تعيين الإعدادات');
+      debugPrint('تم إعادة تعيين الإعدادات');
     } catch (e) {
-      print('خطأ في إعادة تعيين الإعدادات: $e');
+      debugPrint('خطأ في إعادة تعيين الإعدادات: $e');
     }
 
     notifyListeners();

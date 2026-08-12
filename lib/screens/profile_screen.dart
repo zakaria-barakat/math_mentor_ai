@@ -4,6 +4,7 @@ import '../providers/settings_provider.dart';
 import '../providers/auth_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({super.key});
   @override
   Widget build(BuildContext context) {
     return Consumer2<SettingsProvider, AuthProvider>(
@@ -50,8 +51,8 @@ class ProfileScreen extends StatelessWidget {
                         boxShadow: [
                           BoxShadow(
                             color: settings.isDarkMode
-                                ? const Color(0xFF4A6FA5).withOpacity(0.3)
-                                : const Color(0xFF0C206D).withOpacity(0.1),
+                                ? const Color(0xFF4A6FA5).withValues(alpha: 0.3)
+                                : const Color(0xFF0C206D).withValues(alpha: 0.1),
                             blurRadius: 20,
                             spreadRadius: 5,
                           ),
@@ -120,7 +121,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
 
                 const SizedBox(height: 8),
-              
+
                 Text(
                   user.email,
                   style: TextStyle(
@@ -167,29 +168,21 @@ class ProfileScreen extends StatelessWidget {
                             ),
                             ElevatedButton(
                               onPressed: () async {
+                                final navigator = Navigator.of(context);
+                                final messenger = ScaffoldMessenger.of(context);
                                 Navigator.pop(context);
                                 await auth.logout();
-
-                                Navigator.pushNamedAndRemoveUntil(
-                                  context,
-                                  '/',
-                                      (route) => false,
-                                );
-
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(settings.translate(
-                                      'تم تسجيل الخروج بنجاح',
-                                      'Logged out successfully',
-                                    )),
-                                    backgroundColor: const Color(0xFF2E7D32),
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
+                                if (!context.mounted) return;
+                                navigator.pushNamedAndRemoveUntil('/', (route) => false);
+                                messenger.showSnackBar(SnackBar(
+                                  content: Text(settings.translate('تم تسجيل الخروج بنجاح', 'Logged out successfully')),
+                                  backgroundColor: const Color(0xFF2E7D32),
+                                  behavior: SnackBarBehavior.floating,
+                                ));
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: settings.isDarkMode
-                                    ? const Color(0xFFB71C1C).withOpacity(0.8)
+                                    ? const Color(0xFFB71C1C).withValues(alpha: 0.8)
                                     : const Color(0xFFFFEBEE),
                                 foregroundColor: settings.isDarkMode
                                     ? Colors.white
@@ -203,7 +196,7 @@ class ProfileScreen extends StatelessWidget {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: settings.isDarkMode
-                          ? const Color(0xFFB71C1C).withOpacity(0.2)
+                          ? const Color(0xFFB71C1C).withValues(alpha: 0.2)
                           : const Color(0xFFFFEBEE),
                       foregroundColor: settings.isDarkMode
                           ? const Color(0xFFEF5350)
